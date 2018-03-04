@@ -95,7 +95,9 @@
 
     <div><b>Step 1:</b> Select number of rows and columns</div><br/>
     <div>Number of Rows: <input name='rowBox' type="number" min="1" max="10" value="4" id="rowBox" class="box" /> &nbsp Number of Columns: <input name='colBox' type="number" min="1" max="10" value="4" id="colBox" class="box" />&nbsp
-        <button name='buildBox' type="button" maxlength="2" id="buildBox" value='Build Grid' onclick="constructGrid()">Build Grid</button> <br/><br/>
+        <button name='buildBox' type="button" maxlength="2" id="buildBox" value='Build Grid' onclick="constructGrid()">Build Grid</button> &nbsp&nbsp
+        <button name='recurseBox' type="button" maxlength="2" id="recurseBox" value='Explore All Paths' onclick="recurse()">Explore All Paths</button>
+        <br/><br/>
     </div>
 
     <svg id="grid" width="920" height="500"></svg> <br/>
