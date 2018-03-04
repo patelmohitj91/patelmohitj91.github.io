@@ -131,11 +131,14 @@
             var bh = 40;
             var r = 4;
             var c = 4;
-            var origin = [0, 0];
-            var destination = [r - 1, c - 1];
+            var origin = null;
+            var destination = null;
             var constructed_grid;
             var path = [];
             var grid;
+            var explorationGrid = false;
+            var start = false;
+            var click = true;
 
             // function to generate random numbers
             function numGenerate(r, c) {
@@ -189,8 +192,17 @@
                 var c = c;
                 var bw = bw;
                 var bh = bh;
+
+                if (explorationGrid == false) {
+                    click = true;
+                    start = false;
+                    display_grid = '#grid';
+                } else {
+                    display_grid = '#explore';
+                }
+
                 //var element = element;
-                grid = d3.select("#grid")
+                grid = d3.select(display_grid)
                     .attr("align", "right")
                     .append("g")
                     .attr("width", ((r * bw) + r) + "px")
@@ -201,9 +213,6 @@
                     .data(gridD)
                     .enter().append("g")
                     .attr("class", "row");
-
-                var start = false;
-                var count = 0;
 
                 var column = row.selectAll(".square")
                     .data(function(d) {
@@ -226,30 +235,16 @@
                     .attr("weight", function(d) {
                         return d.weight
                     })
-                    .style("fill", "#fff")
+                    .style("fill", function(d) {
+                        return fillGrid(d);
+                    })
                     .style("stroke", "#222")
                     .attr("text", function(d) {
                         return displayText(d.weight, d.x, d.y)
                     })
                     .on('click', function(d) {
-                        if (count < 2) {
-                            if (start == true) {
-                                //console.log("End")
-                                var endPt = endPoint(d3.select(this.__data__));
-                                d3.select(this).style("fill", "lightgreen");
-                                start = false;
-
-                            } else {
-                                //console.log(d3.select(this.__data__))
-                                var startPt = startPoint(d3.select(this.__data__));
-                                d3.select(this).style("fill", "BlanchedAlmond");
-                                start = true;
-
-                            }
-                        }
-                        count = count + 1;
-                    })
-
+                        d3.select(this).style("fill", clickGrid(d))
+                    });
                 // Function to display text
 
                 function displayText(boxweight, xpos, ypos) {
@@ -271,107 +266,6 @@
 
             } // end of buildGrid function
 
-
-            // Function to build the first grid
-
-            function buildGrid2(r, c, bw, bh, gridD, start, end) {
-                var r = r;
-                var c = c;
-                var bw = bw;
-                var bh = bh;
-                var start = start;
-                var end = end;
-                console.log(start[0], start[1]);
-                console.log(end[0], end[1])
-                //var element = element;
-                grid = d3.select("#explore")
-                    .attr("align", "right")
-                    .append("g")
-                    .attr("width", ((r * bw) + r) + "px")
-                    .attr("height", ((c * bh) + c) + "px")
-                //.attr("transform", "translate(0,)");
-
-                var row = grid.selectAll(".row")
-                    .data(gridD)
-                    .enter().append("g")
-                    .attr("class", "row");
-
-
-
-
-                var column = row.selectAll(".square2")
-                    .data(function(d) {
-                        return d;
-                    })
-                    .enter().append("rect")
-                    .attr("class", "square")
-                    .attr("x", function(d) {
-                        return d.x;
-                    })
-                    .attr("y", function(d) {
-                        return d.y;
-                    })
-                    .attr("width", function(d) {
-                        return d.width;
-                    })
-                    .attr("height", function(d) {
-                        return d.height;
-                    })
-                    .attr("weight", function(d) {
-                        return d.weight
-                    })
-                    .style("fill", function(d) {
-                        if (d.x == start[0]) {
-                            console.log("hello");
-                        } else if (d.x == end[0] && d.y == end[1]) {
-                            return "lightgreen";
-                        } else {
-                            return "#fff";
-                        }
-                    })
-                    .style("stroke", "#222")
-                    .attr("text", function(d) {
-                        return displayText(d.weight, d.x, d.y)
-                    })
-                    .on('click', function(d) {
-                        if (count < 2) {
-                            if (start == true) {
-                                //console.log("End")
-                                var endPt = endPoint(d3.select(this.__data__));
-                                d3.select(this).style("fill", "lightgreen");
-                                start = false;
-
-                            } else {
-                                //console.log(d3.select(this.__data__))
-                                var startPt = startPoint(d3.select(this.__data__));
-                                d3.select(this).style("fill", "BlanchedAlmond");
-                                start = true;
-
-                            }
-                        }
-                        count = count + 1;
-                    })
-
-                // Function to display text
-
-                function displayText(boxweight, xpos, ypos) {
-                    var weight = boxweight;
-                    var xposition = xpos + 20;
-                    var yposition = ypos + 20;
-
-                    var text = grid.append("text")
-                        //.attr("text", weight)
-                        .text(weight)
-                        .attr("id", "weight")
-                        .style("color", "black")
-                        .attr("transform", "translate(" + xposition + "," + yposition + ")")
-
-
-                }
-
-
-
-            }
 
             function constructGrid() {
                 var rows = document.getElementById("rowBox").value
@@ -403,7 +297,8 @@
                 var rows = document.getElementById("rowBox").value
                 var cols = document.getElementById("colBox").value
 
-                buildGrid2(rows, cols, bw, bh, constructed_grid, origin, destination);
+                explorationGrid = true;
+                buildGrid(rows, cols, bw, bh, constructed_grid);
 
                 var linepath = grid.append("path")
                     .data([path])
@@ -439,21 +334,18 @@
             }
 
             // function to display startpoint
-            function startPoint(pointData) {
-                var startX = pointData.node()['r']
-                var startY = pointData.node()['c']
+            function startPoint(r, c) {
+                var startX = r
+                var startY = c
                 originText = "You start at : " + startX + " , " + startY
                 document.getElementById("start").innerHTML = originText;
-                origin = [startX, startY]
-                d3.selectAll(".square2")
-                    .data([origin])
-                    .style("fill", "BlanchedAlmond")
+                origin = [startX, startY];
                 //console.log(origin)
             }
 
-            function endPoint(pointData) {
-                var endX = pointData.node()['r']
-                var endY = pointData.node()['c']
+            function endPoint(r, c) {
+                var endX = r
+                var endY = c
                 destinationText = "You end at : " + endX + " , " + endY
                 //destination = endX + "," + endY
                 document.getElementById("end").innerHTML = destinationText;
@@ -751,10 +643,38 @@
                 }
                 return "black";
             }
-        </script>
 
-        <script src="https://d3js.org/d3-timer.v1.min.js"></script>
-        <script>
+            function fillGrid(col) {
+                //If origin and destination are selected, fill grid with colors
+                if (explorationGrid) {
+                    if (origin && col.r == origin[0] && col.c == origin[1]) {
+                        return "BlanchedAlmond";
+                    } else if (destination && col.r == destination[0] && col.c == destination[1]) {
+                        return "lightgreen";
+                    }
+                }
+                return "#fff";
+            }
+
+            function clickGrid(col) {
+                //Click origin and destination and disable click in the second grid
+
+                if (explorationGrid == false && click == true) {
+                    if (start == false) {
+                        var startPt = startPoint(col.r, col.c);
+                        start = true;
+                        return "BlanchedAlmond";
+                    } else {
+                        var endPt = endPoint(col.r, col.c);
+                        click = false;
+                        return "lightgreen";
+                    };
+                }
+                return "#fff";
+            }
+
+
+
             var canvas = document.querySelector("canvas"),
                 context = canvas.getContext("2d"),
                 width = canvas.width,
@@ -809,6 +729,15 @@
                     context.fill();
                 }
             });
+
+            function showRandomPaths() {
+                var paths = [];
+
+                //Given the start point, show random paths generating from the start point
+
+
+                return paths;
+            }
         </script>
 
 
