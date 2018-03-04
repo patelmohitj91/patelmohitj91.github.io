@@ -1,0 +1,819 @@
+<html>
+
+<head>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <meta charset="utf-8" />
+</head>
+<title>Understanding Djikstra's Algorithm using D3</title>
+<style>
+    path {
+        fill: none;
+        stroke: #000;
+        stroke-width: 3px;
+        opacity: 0.2;
+    }
+
+    circle {
+        fill: steelblue;
+        stroke: #fff;
+        stroke-width: 3px;
+        opacity: 0.5;
+    }
+
+    .weight {
+        width: 150px;
+        margin-left: 15px;
+        float: left;
+        font-weight: bold;
+        font-size: 9px;
+        color: "Black";
+    }
+
+    .box {
+        height: 20px;
+        width: 30px;
+    }
+
+    .controls {
+
+
+        margin-left: 55px;
+        float: left;
+        font-size: 14px;
+        font-family: "Tahoma", Geneva, sans-serif;
+        color: "Black";
+
+    }
+
+    .header {
+        font-family: "Tahoma", Geneva, sans-serif;
+        text-align: center;
+    }
+
+
+    .link {
+        stroke: #ccc;
+    }
+
+    .node {
+        fill: #000;
+        stroke: #fff;
+    }
+
+    .container {
+        display: table;
+        width: 100%;
+    }
+
+    .left-half {
+
+        position: absolute;
+        left: 0px;
+        width: 50%;
+
+        margin-left: 500px
+    }
+
+    .right-half {
+
+        position: absolute;
+        right: 0px;
+        width: 50%;
+
+    }
+</style>
+<section class="container">
+    <center>
+        <canvas width="1200" height="200"></canvas>
+    </center>
+
+
+
+    <h4 class="header"> Understanding Djikstra's Algorithm through Interactive Visualization</h4>
+    <!-- div class="left-half"> -->
+
+
+    <div><b>Step 1:</b> Select number of rows and columns</div><br/>
+    <div>Number of Rows: <input name='rowBox' type="number" min="1" max="10" value="4" id="rowBox" class="box" /> &nbsp Number of Columns: <input name='colBox' type="number" min="1" max="10" value="4" id="colBox" class="box" />&nbsp
+        <button name='buildBox' type="button" maxlength="2" id="buildBox" value='Build Grid' onclick="constructGrid()">Build Grid</button> <br/><br/>
+    </div>
+
+    <svg id="grid" width="920" height="500"></svg> <br/>
+
+    <br/>
+    <div><b>Step 2:</b> Select the start and end point on the Grid</div> <br/>
+    <div id="start" class="text">You start at :</div> <br/>
+    <div id="end" class="text">You end at :</div> <br/>
+    <button name='buildBox' type="button" maxlength="2" id="buildBox" value='Build Graph' onclick="constructGraph()">Build Graph</button> <br/> <br/>
+    <svg id="leftgrid" width="920" height="900"></svg>
+    <br/><br/>
+    <div><b>Step 3:</b> Hit Explore! &nbsp
+        <input name='exploreBox' type="submit" maxlength="2" id="exploreBox" value="Explore" onclick="exploreGrid()" />
+        </h4>
+    </div>
+
+    <svg id="explore" width="920" height="500"></svg> <br/>
+
+
+    </div>
+    <!-- <div class = "right-half"> -->
+    <!-- <center> -->
+    <svg id="grid" width="920" height="500"></svg> <br/>
+
+    </center>
+    </div>
+
+
+    <body bgcolor="#F5F5DC">
+
+        <script>
+            var bw = 40;
+            var bh = 40;
+            var r = 4;
+            var c = 4;
+            var origin = [0, 0];
+            var destination = [r - 1, c - 1];
+            var constructed_grid;
+            var path = [];
+            var grid;
+
+            // function to generate random numbers
+            function numGenerate(r, c) {
+                return Math.round(Math.random() * Math.max(r, c))
+            }
+
+            // function to generate the array of points to plot squares
+
+            function gridData(r, c, bw, bh) {
+                var data = new Array();
+                var xpos = 1; //starting xpos and ypos at 1 so the stroke will show when we make the grid below
+                var ypos = 1;
+                var click = 0;
+
+
+                // iterate for rows 
+                for (var row = 0; row < r; row++) {
+                    data.push(new Array());
+
+                    // iterate for cells/columns inside rows
+                    for (var column = 0; column < c; column++) {
+                        var wt = numGenerate(r, c)
+
+                        data[row].push({
+                            x: xpos,
+                            y: ypos,
+                            width: bw,
+                            height: bh,
+                            click: click,
+                            weight: wt,
+                            r: row,
+                            c: column
+                        })
+                        // increment the x position. I.e. move it over by 50 (width variable)
+                        xpos += bw;
+                    }
+                    // reset the x position after a row is complete
+                    xpos = 1;
+                    // increment the y position for the next row. Move it down 50 (height variable)
+                    ypos += bh;
+                }
+                return data;
+            }
+
+
+
+            // Function to build the first grid
+
+            function buildGrid(r, c, bw, bh, gridD) {
+                var r = r;
+                var c = c;
+                var bw = bw;
+                var bh = bh;
+                //var element = element;
+                grid = d3.select("#grid")
+                    .attr("align", "right")
+                    .append("g")
+                    .attr("width", ((r * bw) + r) + "px")
+                    .attr("height", ((c * bh) + c) + "px")
+                //.attr("transform", "translate(0,)");
+
+                var row = grid.selectAll(".row")
+                    .data(gridD)
+                    .enter().append("g")
+                    .attr("class", "row");
+
+                var start = false;
+                var count = 0;
+
+                var column = row.selectAll(".square")
+                    .data(function(d) {
+                        return d;
+                    })
+                    .enter().append("rect")
+                    .attr("class", "square")
+                    .attr("x", function(d) {
+                        return d.x;
+                    })
+                    .attr("y", function(d) {
+                        return d.y;
+                    })
+                    .attr("width", function(d) {
+                        return d.width;
+                    })
+                    .attr("height", function(d) {
+                        return d.height;
+                    })
+                    .attr("weight", function(d) {
+                        return d.weight
+                    })
+                    .style("fill", "#fff")
+                    .style("stroke", "#222")
+                    .attr("text", function(d) {
+                        return displayText(d.weight, d.x, d.y)
+                    })
+                    .on('click', function(d) {
+                        if (count < 2) {
+                            if (start == true) {
+                                //console.log("End")
+                                var endPt = endPoint(d3.select(this.__data__));
+                                d3.select(this).style("fill", "lightgreen");
+                                start = false;
+
+                            } else {
+                                //console.log(d3.select(this.__data__))
+                                var startPt = startPoint(d3.select(this.__data__));
+                                d3.select(this).style("fill", "BlanchedAlmond");
+                                start = true;
+
+                            }
+                        }
+                        count = count + 1;
+                    })
+
+                // Function to display text
+
+                function displayText(boxweight, xpos, ypos) {
+                    var weight = boxweight;
+                    var xposition = xpos + 20;
+                    var yposition = ypos + 20;
+
+                    var text = grid.append("text")
+                        //.attr("text", weight)
+                        .text(weight)
+                        .attr("id", "weight")
+                        .style("color", "black")
+                        .attr("transform", "translate(" + xposition + "," + yposition + ")")
+
+
+                }
+
+
+
+            } // end of buildGrid function
+
+
+            // Function to build the first grid
+
+            function buildGrid2(r, c, bw, bh, gridD, start, end) {
+                var r = r;
+                var c = c;
+                var bw = bw;
+                var bh = bh;
+                var start = start;
+                var end = end;
+                console.log(start[0], start[1]);
+                console.log(end[0], end[1])
+                //var element = element;
+                grid = d3.select("#explore")
+                    .attr("align", "right")
+                    .append("g")
+                    .attr("width", ((r * bw) + r) + "px")
+                    .attr("height", ((c * bh) + c) + "px")
+                //.attr("transform", "translate(0,)");
+
+                var row = grid.selectAll(".row")
+                    .data(gridD)
+                    .enter().append("g")
+                    .attr("class", "row");
+
+
+
+
+                var column = row.selectAll(".square2")
+                    .data(function(d) {
+                        return d;
+                    })
+                    .enter().append("rect")
+                    .attr("class", "square")
+                    .attr("x", function(d) {
+                        return d.x;
+                    })
+                    .attr("y", function(d) {
+                        return d.y;
+                    })
+                    .attr("width", function(d) {
+                        return d.width;
+                    })
+                    .attr("height", function(d) {
+                        return d.height;
+                    })
+                    .attr("weight", function(d) {
+                        return d.weight
+                    })
+                    .style("fill", function(d) {
+                        if (d.x == start[0]) {
+                            console.log("hello");
+                        } else if (d.x == end[0] && d.y == end[1]) {
+                            return "lightgreen";
+                        } else {
+                            return "#fff";
+                        }
+                    })
+                    .style("stroke", "#222")
+                    .attr("text", function(d) {
+                        return displayText(d.weight, d.x, d.y)
+                    })
+                    .on('click', function(d) {
+                        if (count < 2) {
+                            if (start == true) {
+                                //console.log("End")
+                                var endPt = endPoint(d3.select(this.__data__));
+                                d3.select(this).style("fill", "lightgreen");
+                                start = false;
+
+                            } else {
+                                //console.log(d3.select(this.__data__))
+                                var startPt = startPoint(d3.select(this.__data__));
+                                d3.select(this).style("fill", "BlanchedAlmond");
+                                start = true;
+
+                            }
+                        }
+                        count = count + 1;
+                    })
+
+                // Function to display text
+
+                function displayText(boxweight, xpos, ypos) {
+                    var weight = boxweight;
+                    var xposition = xpos + 20;
+                    var yposition = ypos + 20;
+
+                    var text = grid.append("text")
+                        //.attr("text", weight)
+                        .text(weight)
+                        .attr("id", "weight")
+                        .style("color", "black")
+                        .attr("transform", "translate(" + xposition + "," + yposition + ")")
+
+
+                }
+
+
+
+            }
+
+            function constructGrid() {
+                var rows = document.getElementById("rowBox").value
+                var cols = document.getElementById("colBox").value
+                constructed_grid = gridData(rows, cols, bw, bh);
+
+                d3.selectAll('#weight').remove();
+                d3.selectAll('.square').remove();
+                d3.selectAll('#pathID').remove();
+                d3.selectAll('#circleID').remove();
+                d3.selectAll(".link").remove();
+                d3.selectAll(".node").remove();
+
+                buildGrid(rows, cols, bw, bh, constructed_grid);
+                //buildGrid2(rows, cols, bw, bh, constructed_grid);
+                //buildGrid(rows, cols, bw, bh, constructed_grid,"#explore");
+                //showNeighbors(constructed_grid);
+            }
+
+            function constructGraph() {
+                showNeighbors(constructed_grid);
+
+            }
+
+            function exploreGrid() {
+                cost_matrix = findMinCost(constructed_grid, origin, destination);
+                path = findCheapestPath(cost_matrix, origin, destination, constructed_grid);
+
+                var rows = document.getElementById("rowBox").value
+                var cols = document.getElementById("colBox").value
+
+                buildGrid2(rows, cols, bw, bh, constructed_grid, origin, destination);
+
+                var linepath = grid.append("path")
+                    .data([path])
+                    .attr("d", d3.line(d3.curveLinear))
+                    .attr("id", "pathID");
+
+                // Draw Circle at start of path
+                var circle = grid.append("circle")
+                    .attr('r', 7)
+                    .attr("transform", "translate(" + path[0] + ")")
+                    .attr("id", "circleID");
+
+                function transition() {
+                    circle.transition()
+                        .duration(3000)
+                        .attrTween("transform", translateAlong(linepath.node()))
+                    //.each("end", transition);
+                }
+
+                // Returns an attrTween for translating along the specified path element.
+                function translateAlong(linepath) {
+                    var l = linepath.getTotalLength();
+                    return function(d, i, a) {
+                        return function(t) {
+                            var p = linepath.getPointAtLength(t * l);
+                            return "translate(" + p.x + "," + p.y + ")";
+                        };
+                    };
+
+                }
+                transition();
+
+            }
+
+            // function to display startpoint
+            function startPoint(pointData) {
+                var startX = pointData.node()['r']
+                var startY = pointData.node()['c']
+                originText = "You start at : " + startX + " , " + startY
+                document.getElementById("start").innerHTML = originText;
+                origin = [startX, startY]
+                d3.selectAll(".square2")
+                    .data([origin])
+                    .style("fill", "BlanchedAlmond")
+                //console.log(origin)
+            }
+
+            function endPoint(pointData) {
+                var endX = pointData.node()['r']
+                var endY = pointData.node()['c']
+                destinationText = "You end at : " + endX + " , " + endY
+                //destination = endX + "," + endY
+                document.getElementById("end").innerHTML = destinationText;
+                destination = [endX, endY];
+            }
+
+            function findValidNeighbors(cost_matrix, r, c, col) {
+                var valid = [];
+                i = col[0];
+                j = col[1];
+
+                //top
+                if ((j - 1) >= 0 && (j - 1) < c && cost_matrix[i][j - 1].visited == false) {
+                    valid.push([i, j - 1]);
+                }
+
+                //bottom
+                if ((j + 1) >= 0 && (j + 1) < c && cost_matrix[i][j + 1].visited == false) {
+                    valid.push([i, j + 1]);
+                }
+
+                //left
+                if ((i - 1) >= 0 && (i - 1) < r && cost_matrix[i - 1][j].visited == false) {
+                    valid.push([i - 1, j]);
+                }
+
+                //right
+                if ((i + 1) >= 0 && (i + 1) < r && cost_matrix[i + 1][j].visited == false) {
+                    valid.push([i + 1, j]);
+                }
+
+                return (valid);
+            }
+
+            function findMinCost(grid, origin, destination) {
+                //Shortest cost algorithm
+                var queue = {};
+                var visited = [];
+                var r = grid.length;
+                var c = grid[0].length;
+                var cost_matrix = new Array(r);
+
+                //Fill the grid with infinite cost
+                for (var i = 0; i < r; i++) {
+
+                    cost_matrix[i] = new Array(c);
+
+                    for (var j = 0; j < c; j++) {
+                        cost_matrix[i][j] = {
+                            "cost": Infinity,
+                            "previous": -1,
+                            "visited": false
+                        };
+                    }
+                }
+                //Setting the origin cost as 0
+                cost_matrix[origin[0]][origin[1]].cost = 0;
+                //Pushing origin into the dict-queue
+                queue[0] = [];
+                queue[0].push(origin);
+                var i = 0;
+
+                while (Object.keys(queue).length != 0) {
+
+                    //Getting the minimum dictionary cost
+                    cost_first = Math.min.apply(null, Object.keys(queue));
+                    elements = queue[cost_first];
+                    first = queue[cost_first][0];
+                    //console.log(cost_first, first);
+
+                    //Gettting all valid neighbors
+                    neighbors = findValidNeighbors(cost_matrix, r, c, first);
+
+                    //Updating cost of neighbors
+                    while (neighbors.length != 0) {
+                        neighbor = neighbors.pop();
+                        //console.log(neighbor);
+                        //Current Cost
+                        cost_neighbor = cost_matrix[neighbor[0]][neighbor[1]].cost;
+                        //New Cost by adding the previous value
+                        new_cost = cost_first + grid[neighbor[0]][neighbor[1]].weight;
+
+                        //If the new cost is less, then update value
+                        if (new_cost < cost_neighbor) {
+                            //Updating cost and previous value
+                            cost_matrix[neighbor[0]][neighbor[1]].cost = new_cost;
+                            cost_matrix[neighbor[0]][neighbor[1]].previous = first
+
+                            //Removing old cost
+                            if (queue[cost_neighbor] != undefined) {
+                                ind = queue[cost_neighbor].indexOf(neighbor);
+                                queue[cost_neighbor].splice(ind, 1);
+
+                                //If old cost length is zero, then remove key
+                                if (queue[cost_neighbor].length == 0) {
+                                    delete queue[cost_neighbor];
+                                }
+                            }
+
+                            //Add neighbor to new cost
+                            if (queue[new_cost] == undefined) {
+                                queue[new_cost] = [];
+                            }
+                            queue[new_cost].push(neighbor);
+                        }
+                    }
+
+                    //Remove first element
+                    ind = queue[cost_first].indexOf(first);
+                    queue[cost_first].splice(ind, 1);
+                    //console.log(Object.keys(queue), queue[cost_first][0]);
+
+                    if (queue[cost_first].length == 0) {
+                        delete queue[cost_first];
+                    }
+                    //Visited is true
+                    cost_matrix[first[0]][first[1]].visited = true;
+                }
+                return cost_matrix;
+            }
+
+
+            //var origin = [0,0]
+            //var destination = [r - 1, c - 1];
+
+
+            function pathSvgIndex(col, grid) {
+                element = grid[col[0]][col[1]];
+                x = element.x + 20;
+                y = element.y + 20;
+
+                return [x, y];
+            }
+
+            function findCheapestPath(cost_matrix, origin, destination, constructed_grid) {
+                var path = [];
+                path.unshift(pathSvgIndex(destination, constructed_grid));
+                previous = cost_matrix[destination[0]][destination[1]].previous
+
+                while (previous != origin) {
+                    path.unshift(pathSvgIndex(previous, constructed_grid));
+                    previous = cost_matrix[previous[0]][previous[1]].previous
+                }
+                path.unshift(pathSvgIndex(previous, constructed_grid));
+                return path;
+            }
+
+            //console.log(path)
+            // initial grid
+            //buildGrid(r, c, bw, bh, constructed_grid);
+
+            function getAllNeighbors(point, constructed_grid, nodes, links, visited) {
+                //Show neighbors in a graph
+
+                i = point[0];
+                j = point[1];
+                source = i + ',' + j
+
+                if (visited[source] == undefined) {
+                    nodes.push({
+                        id: source,
+                        weight: constructed_grid[i][j].weight
+                    });
+                    visited[source] = true;
+                }
+
+                //Top, Bottom
+                [-1, 1].forEach(function(dj) {
+                    if (constructed_grid[i][j + dj] != undefined) {
+                        target = i + ',' + (j + dj);
+                        weight = constructed_grid[i][j + dj].weight;
+
+                        links.push({
+                            source: source,
+                            target: target,
+                            weight: weight
+                        });
+                        if (visited[target] == undefined) {
+                            nodes.push({
+                                id: target,
+                                weight: weight
+                            });
+                            visited[target] = true;
+                        }
+                    }
+                });
+
+                //Left, right
+                [-1, 1].forEach(function(di) {
+                    if (constructed_grid[i + di] != undefined) {
+                        target = (i + di) + ',' + j;
+                        weight = constructed_grid[i + di][j].weight;
+
+                        links.push({
+                            source: source,
+                            target: target,
+                            weight: weight
+                        });
+                        if (visited[target] == undefined) {
+                            nodes.push({
+                                id: target,
+                                weight: weight
+                            });
+                            visited[target] = true;
+                        }
+                    }
+                });
+            }
+
+            function showNeighbors(constructed_grid) {
+                var nodes = [];
+                var links = [];
+                var visited = {};
+
+                for (var i = 0; i < constructed_grid.length; i++) {
+                    for (var j = 0; j < constructed_grid[0].length; j++) {
+                        current = [i, j];
+                        getAllNeighbors(current, constructed_grid, nodes, links, visited);
+                    }
+                }
+
+                var svg = d3.select("#leftgrid"),
+                    width = +svg.attr("width"),
+                    height = +svg.attr("height");
+
+                var simulation = d3.forceSimulation()
+                    .force("charge", d3.forceManyBody().strength(-200))
+                    .force("link", d3.forceLink().id(function(d) {
+                        return d.id;
+                    }).distance(40))
+                    .force("x", d3.forceX(width / 2))
+                    .force("y", d3.forceY(height / 2))
+                    .on("tick", ticked);
+
+                var link = svg.selectAll(".link"),
+                    node = svg.selectAll(".node");
+
+                simulation.nodes(nodes);
+                simulation.force("link").links(links);
+
+                link = link
+                    .data(links)
+                    .enter().append("line")
+                    .attr("class", "link")
+                    .attr("stroke", "black");
+
+                node = node
+                    .data(nodes)
+                    .enter().append("circle")
+                    .attr("class", "node")
+                    .attr("r", function(d) {
+                        return (d.weight + 1) * 3
+                    })
+                    .style("fill", function(d) {
+                        return fillNode(d);
+                    })
+                    .on('mouseover', function(d) {
+                        d3.select(this).append('svg:title').text(function(d) {
+                            return d.id;
+                        })
+                    });
+
+                function ticked() {
+                    link.attr("x1", function(d) {
+                            return d.source.x;
+                        })
+                        .attr("y1", function(d) {
+                            return d.source.y;
+                        })
+                        .attr("x2", function(d) {
+                            return d.target.x;
+                        })
+                        .attr("y2", function(d) {
+                            return d.target.y;
+                        });
+
+                    node.attr("cx", function(d) {
+                            return d.x;
+                        })
+                        .attr("cy", function(d) {
+                            return d.y;
+                        });
+                }
+            }
+
+            function fillNode(node) {
+
+                o = origin[0] + ',' + origin[1];
+                d = destination[0] + ',' + destination[1];
+
+                if (node.id == o) {
+                    return "crimson";
+                } else if (node.id == d) {
+                    return "darkgreen";
+                }
+                return "black";
+            }
+        </script>
+
+        <script src="https://d3js.org/d3-timer.v1.min.js"></script>
+        <script>
+            var canvas = document.querySelector("canvas"),
+                context = canvas.getContext("2d"),
+                width = canvas.width,
+                height = canvas.height,
+                radius = 2.5,
+                minDistance = 80,
+                maxDistance = 100,
+                minDistance2 = minDistance * minDistance,
+                maxDistance2 = maxDistance * maxDistance;
+
+            var tau = 2 * Math.PI,
+                n = 100,
+                particles = new Array(n);
+
+            for (var i = 0; i < n; ++i) {
+                particles[i] = {
+                    x: width * Math.random(),
+                    y0: height * Math.random(),
+                    v: 0.1 * (Math.random() - 0.5)
+                };
+            }
+
+            d3.timer(function(elapsed) {
+                context.clearRect(0, 0, width, height);
+
+                for (var i = 0; i < n; ++i) {
+                    for (var j = i + 1; j < n; ++j) {
+                        var pi = particles[i],
+                            pj = particles[j],
+                            dx = pi.x - pj.x,
+                            dy = pi.y - pj.y,
+                            d2 = dx * dx + dy * dy;
+                        if (d2 < maxDistance2) {
+                            context.globalAlpha = d2 > minDistance2 ? (maxDistance2 - d2) / (maxDistance2 - minDistance2) : 1;
+                            context.beginPath();
+                            context.moveTo(pi.x, pi.y);
+                            context.lineTo(pj.x, pj.y);
+                            context.stroke();
+                        }
+                    }
+                }
+
+                context.globalAlpha = 1;
+
+                for (var i = 0; i < n; ++i) {
+                    var p = particles[i];
+                    p.y = p.y0 + elapsed * p.v;
+                    if (p.y > height + maxDistance) p.x = width * Math.random(), p.y0 -= height + 2 * maxDistance;
+                    else if (p.y < -maxDistance) p.x = width * Math.random(), p.y0 += height + 2 * maxDistance;
+                    context.beginPath();
+                    context.arc(p.x, p.y, radius, 0, tau);
+                    context.fill();
+                }
+            });
+        </script>
+
+
+
+    </body>
+</section>
+
+</html>
