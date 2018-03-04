@@ -139,6 +139,9 @@
             var explorationGrid = false;
             var start = false;
             var click = true;
+            var ngbrs = {};
+            var nodes = [];
+            var links = [];
 
             // function to generate random numbers
             function numGenerate(r, c) {
@@ -283,11 +286,15 @@
                 //buildGrid2(rows, cols, bw, bh, constructed_grid);
                 //buildGrid(rows, cols, bw, bh, constructed_grid,"#explore");
                 //showNeighbors(constructed_grid);
+                fetchNeighbors(constructed_grid);
+            }
+
+            function recurse(){
+                pathTraversal(showRandomPaths());
             }
 
             function constructGraph() {
-                showNeighbors(constructed_grid);
-
+                showGraph(constructed_grid);
             }
 
             function exploreGrid() {
@@ -299,38 +306,43 @@
 
                 explorationGrid = true;
                 buildGrid(rows, cols, bw, bh, constructed_grid);
+                pathTraversal([path]);
+            }
 
-                var linepath = grid.append("path")
-                    .data([path])
+            function pathTraversal(paths){
+
+                for(var i = 0; i<paths.length; i++){
+                    var linepath = grid.append("path")
+                    .data([paths[i]])
                     .attr("d", d3.line(d3.curveLinear))
                     .attr("id", "pathID");
 
                 // Draw Circle at start of path
-                var circle = grid.append("circle")
-                    .attr('r', 7)
-                    .attr("transform", "translate(" + path[0] + ")")
-                    .attr("id", "circleID");
+                    var circle = grid.append("circle")
+                        .attr('r', 7)
+                        .attr("transform", "translate(" + path[0] + ")")
+                        .attr("id", "circleID");
 
-                function transition() {
-                    circle.transition()
-                        .duration(3000)
-                        .attrTween("transform", translateAlong(linepath.node()))
-                    //.each("end", transition);
-                }
+                    function transition() {
+                        circle.transition()
+                            .duration(3000)
+                            .attrTween("transform", translateAlong(linepath.node()))
+                        //.each("end", transition);
+                    }
 
-                // Returns an attrTween for translating along the specified path element.
-                function translateAlong(linepath) {
-                    var l = linepath.getTotalLength();
-                    return function(d, i, a) {
-                        return function(t) {
-                            var p = linepath.getPointAtLength(t * l);
-                            return "translate(" + p.x + "," + p.y + ")";
+                    // Returns an attrTween for translating along the specified path element.
+                    function translateAlong(linepath) {
+                        var l = linepath.getTotalLength();
+                        return function(d, i, a) {
+                            return function(t) {
+                                var p = linepath.getPointAtLength(t * l);
+                                return "translate(" + p.x + "," + p.y + ")";
+                            };
                         };
-                    };
 
+                    }
+                    transition();
                 }
-                transition();
-
             }
 
             // function to display startpoint
@@ -512,6 +524,10 @@
                     visited[source] = true;
                 }
 
+                if(ngbrs[source] == undefined){
+                    ngbrs[source] = []
+                }
+
                 //Top, Bottom
                 [-1, 1].forEach(function(dj) {
                     if (constructed_grid[i][j + dj] != undefined) {
@@ -530,6 +546,7 @@
                             });
                             visited[target] = true;
                         }
+                        ngbrs[source].push(target);
                     }
                 });
 
@@ -551,20 +568,15 @@
                             });
                             visited[target] = true;
                         }
+                        ngbrs[source].push(target);
                     }
                 });
             }
 
-            function showNeighbors(constructed_grid) {
-                var nodes = [];
-                var links = [];
-                var visited = {};
+            function showGraph(constructed_grid) {
 
-                for (var i = 0; i < constructed_grid.length; i++) {
-                    for (var j = 0; j < constructed_grid[0].length; j++) {
-                        current = [i, j];
-                        getAllNeighbors(current, constructed_grid, nodes, links, visited);
-                    }
+                if(ngbrs.length == 0){
+                    fetchNeighbors(constructed_grid);    
                 }
 
                 var svg = d3.select("#leftgrid"),
@@ -629,6 +641,18 @@
                             return d.y;
                         });
                 }
+            }
+
+            function fetchNeighbors(constructed_grid){
+                var visited = {};
+
+                for (var i = 0; i < constructed_grid.length; i++) {
+                    for (var j = 0; j < constructed_grid[0].length; j++) {
+                        current = [i, j];
+                        getAllNeighbors(current, constructed_grid, nodes, links, visited);
+                    }
+                }
+
             }
 
             function fillNode(node) {
@@ -734,7 +758,7 @@
                 var paths = [];
 
                 //Given the start point, show random paths generating from the start point
-
+                
 
                 return paths;
             }
