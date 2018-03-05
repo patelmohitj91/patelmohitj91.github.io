@@ -319,6 +319,7 @@
 
             function pathTraversal(paths){
                 //Showing line traversal on a grid
+                var paths = paths;
                 for(var i = 0; i<paths.length; i++){
                     var linepath = grid.append("path")
                     .data([paths[i]])
@@ -328,7 +329,7 @@
                 // Draw Circle at start of path
                     var circle = grid.append("circle")
                         .attr('r', 7)
-                        .attr("transform", "translate(" + path[0] + ")")
+                        .attr("transform", "translate(" + paths[0] + ")")
                         .attr("id", "circleID");
 
                     function transition() {
