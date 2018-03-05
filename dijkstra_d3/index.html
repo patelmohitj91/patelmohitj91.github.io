@@ -143,7 +143,7 @@
             var origin = null;
             var destination = null;
             var constructed_grid;
-            var path = [];
+            var cheapest_path = [];
             var grid;
             var explorationGrid = false;
             var start = false;
@@ -316,6 +316,7 @@
                 explorationGrid = true;
                 buildGrid(rows, cols, bw, bh, constructed_grid);
                 pathTraversal([path]);
+                console.log(cheapest_path)
             }
 
             function pathTraversal(paths){
@@ -502,15 +503,20 @@
             }
 
             function findCheapestPath(cost_matrix, origin, destination, constructed_grid) {
-                var path = [];
+                var path = []
                 path.unshift(pathSvgIndex(destination, constructed_grid));
+
+                cheapest_path.unshift(destination);
+
                 previous = cost_matrix[destination[0]][destination[1]].previous
 
                 while (previous != origin) {
                     path.unshift(pathSvgIndex(previous, constructed_grid));
+                    cheapest_path.unshift(previous);
                     previous = cost_matrix[previous[0]][previous[1]].previous
                 }
                 path.unshift(pathSvgIndex(previous, constructed_grid));
+                cheapest_path.unshift(previous);
                 return path;
             }
 
@@ -627,7 +633,9 @@
                         d3.select(this).append('svg:title').text(function(d) {
                             return d.id;
                         })
-                    });
+                    
+                    })
+                    .on('click', function(d){console.log(d)});    
 
                 function ticked() {
                     link.attr("x1", function(d) {
@@ -649,7 +657,7 @@
                         .attr("cy", function(d) {
                             return d.y;
                         });
-                        console.log("hello")
+                        
                 }
             }
 
@@ -675,6 +683,8 @@
                 } else if (node.id == d) {
                     return "darkgreen";
                 }
+                else if (node.id == "3,5")
+                    {return "blue"}
                 return "black";
             }
 
