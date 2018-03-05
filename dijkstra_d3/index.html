@@ -325,16 +325,11 @@
 
             function colourNodePath()
             {   
-                    for (i =0; i<cheapest_path.length; i++)
-                    { 
+                for (i =0; i<cheapest_path.length; i++)
+                { 
                     node_id = cheapest_path[i][0] +","+cheapest_path[i][1]
-                    console.log(node_id)
-                    d3.selectAll("circle")
-                        .data(nodes)
-                        .style("fill", function(d){ 
-                            if(d.id == node_id) 
-                            {return "blue";}
-                    });
+                    d3.selectAll('circle[id="'+node_id+'"]')
+                        .style("fill", "blue");
                 }
             }
 
