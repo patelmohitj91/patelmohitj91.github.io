@@ -122,7 +122,6 @@
     <div><b>Let's visualize this as a graph with nodes</div> <br/>
     <button name='buildBox' type="button" maxlength="2" id="buildBox" value='Build Graph' onclick="constructGraph()">Build Graph</button> <br/> <br/>
     <svg id="leftgrid" width="920" height="900"></svg>
-    <svg id="lefttable" width="920" height="900"></svg>
 
     <br/><br/> 
 
@@ -132,7 +131,7 @@
     </div><br/><br/>
 
     <svg id="explore" width="920" height="500"></svg> <br/>
-
+    <div id="cost" class="text"></div> <br/>
 
     </div>
 </div>
@@ -300,7 +299,7 @@
                 //Calling the cheapest cost function here, because we can save cost steps and use them to explain dijkstra
                 cost_matrix = findMinCost(constructed_grid, origin, destination);
                 svg_path = findCheapestPath(cost_matrix, origin, destination, constructed_grid);
-                var table = tabulate(iterative_costs[0], ['current', 'current_cost', 'neighbor', 'new_cost'])
+                //var table = tabulate(iterative_costs[0], ['current', 'current_cost', 'neighbor', 'new_cost'])
             }
 
             function exploreGrid() {
@@ -330,6 +329,8 @@
 
                     cost = (+d3.selectAll('circle[id="'+node_id+'"]').attr('cost')) + cost;
                 }
+                d3.selectAll("#cost")
+                .text("The Spy made it to his destination with "+cost+" damage!");
             }
 
             function pathTraversal(paths){
