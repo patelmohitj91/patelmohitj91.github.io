@@ -136,23 +136,23 @@
     <body bgcolor="#F5F5DC">
 
         <script>
-            var bw = 40;
-            var bh = 40;
-            var r = 4;
-            var c = 4;
-            var origin = null;
-            var destination = null;
-            var constructed_grid;
-            var cheapest_path = [];
-            var grid;
-            var explorationGrid = false;
-            var start = false;
-            var click = true;
-            var ngbrs = {};
-            var nodes = [];
-            var links = [];
-            var node; 
-            var link; 
+            var bw = 40; //box width
+            var bh = 40; //box height
+            var origin = null; //origin to start traversal
+            var destination = null; //destination for traversal
+            var constructed_grid; //random values in a two dimensional matrix
+            var cheapest_path = []; //array of cheapest path
+            var grid; //grid element that shows row and column
+            var explorationGrid = false; //flag variable to toggle between two grids generated
+            var start = false; //if no point is clicked
+            var click = true; //if both points are clicked
+            var ngbrs = {}; //All neighbors of all nodes
+            var nodes = []; //All node elements in array
+            var links = []; //All link elements in array
+            var node; //d3 element containing all nodes
+            var link; //d3 element containing all links
+            var iterative_costs = []; //Saving all step by step costs
+            var svg_path = []; //Shortest svg path since I am calling dijkstra along with graph
 
             // function to generate random numbers
             function numGenerate(r, c) {
@@ -160,7 +160,6 @@
             }
 
             // function to generate the array of points to plot squares
-
             function gridData(r, c, bw, bh) {
                 var data = new Array();
                 var xpos = 1; //starting xpos and ypos at 1 so the stroke will show when we make the grid below
@@ -197,16 +196,14 @@
                 return data;
             }
 
-
-
             // Function to build the first grid
-
             function buildGrid(r, c, bw, bh, gridD) {
                 var r = r;
                 var c = c;
                 var bw = bw;
                 var bh = bh;
 
+                //Variable to ensure identify which grid should be selected
                 if (explorationGrid == false) {
                     click = true;
                     start = false;
@@ -215,13 +212,11 @@
                     display_grid = '#explore';
                 }
 
-                //var element = element;
                 grid = d3.select(display_grid)
                     .attr("align", "right")
                     .append("g")
                     .attr("width", ((r * bw) + r) + "px")
                     .attr("height", ((c * bh) + c) + "px")
-                //.attr("transform", "translate(0,)");
 
                 var row = grid.selectAll(".row")
                     .data(gridD)
@@ -259,8 +254,8 @@
                     .on('click', function(d) {
                         d3.select(this).style("fill", clickGrid(d))
                     });
-                // Function to display text
 
+                // Function to display text
                 function displayText(boxweight, xpos, ypos) {
                     var weight = boxweight;
                     var xposition = xpos + 20;
@@ -272,14 +267,8 @@
                         .attr("id", "weight")
                         .style("color", "black")
                         .attr("transform", "translate(" + xposition + "," + yposition + ")")
-
-
                 }
-
-
-
-            } // end of buildGrid function
-
+            }
 
             function constructGrid() {
                 var rows = document.getElementById("rowBox").value
@@ -294,9 +283,6 @@
                 d3.selectAll(".node").remove();
 
                 buildGrid(rows, cols, bw, bh, constructed_grid);
-                //buildGrid2(rows, cols, bw, bh, constructed_grid);
-                //buildGrid(rows, cols, bw, bh, constructed_grid,"#explore");
-                //showNeighbors(constructed_grid);
                 fetchNeighbors(constructed_grid);
             }
 
@@ -305,27 +291,31 @@
             }
 
             function constructGraph() {
+                //Drawing a graph with nodes and edges
                 showGraph(constructed_grid);
+                //Calling the cheapest cost function here, because we can save cost steps and use them to explain dijkstra
+                cost_matrix = findMinCost(constructed_grid, origin, destination);
+                svg_path = findCheapestPath(cost_matrix, origin, destination, constructed_grid);
             }
 
             function exploreGrid() {
-                cost_matrix = findMinCost(constructed_grid, origin, destination);
-                path = findCheapestPath(cost_matrix, origin, destination, constructed_grid);
-
+                //Showing cheapest traversal
                 var rows = document.getElementById("rowBox").value
                 var cols = document.getElementById("colBox").value
 
+                //Ensuring that we are at the bottom grid
                 explorationGrid = true;
+                //Displaying grid and traversing on the shortest path
                 buildGrid(rows, cols, bw, bh, constructed_grid);
-                pathTraversal([path]);
-                
-
+                pathTraversal([svg_path]);
+                //Showing path on the node
                 colourNodePath();
             }
 
             function colourNodePath()
             {   
-                for (i =1; i<cheapest_path.length-1; i++)
+                //Coloring node path, based on the cheapest path calculated
+                for (i = 1; i < cheapest_path.length - 1; i++)
                 { 
                     node_id = cheapest_path[i][0] +","+cheapest_path[i][1]
                     d3.selectAll('circle[id="'+node_id+'"]')
@@ -336,7 +326,7 @@
             }
 
             function pathTraversal(paths){
-
+                //Showing line traversal on a grid
                 for(var i = 0; i<paths.length; i++){
                     var linepath = grid.append("path")
                     .data([paths[i]])
@@ -353,7 +343,6 @@
                         circle.transition()
                             .duration(3000)
                             .attrTween("transform", translateAlong(linepath.node()))
-                        //.each("end", transition);
                     }
 
                     // Returns an attrTween for translating along the specified path element.
@@ -373,6 +362,7 @@
 
             // function to display startpoint
             function startPoint(r, c) {
+                //Saving clicked origin points
                 var startX = r
                 var startY = c
                 originText = "You start at : " + startX + " , " + startY
@@ -382,6 +372,7 @@
             }
 
             function endPoint(r, c) {
+                //Saving clicked destination points
                 var endX = r
                 var endY = c
                 destinationText = "You end at : " + endX + " , " + endY
@@ -391,6 +382,7 @@
             }
 
             function findValidNeighbors(cost_matrix, r, c, col) {
+                //Getting all neighbors which are not visited, for dijkstra
                 var valid = [];
                 i = col[0];
                 j = col[1];
@@ -447,24 +439,32 @@
                 var i = 0;
 
                 while (Object.keys(queue).length != 0) {
-
                     //Getting the minimum dictionary cost
                     cost_first = Math.min.apply(null, Object.keys(queue));
                     elements = queue[cost_first];
                     first = queue[cost_first][0];
+                    var neighbor_cost = {}
                     //console.log(cost_first, first);
 
                     //Gettting all valid neighbors
                     neighbors = findValidNeighbors(cost_matrix, r, c, first);
+                    first_key = first[0]+','+first[1]
+                    var neighbor_costs = [];
 
                     //Updating cost of neighbors
                     while (neighbors.length != 0) {
                         neighbor = neighbors.pop();
-                        //console.log(neighbor);
+                        neighbor_key = neighbor[0]+','+neighbor[1]
+                        
                         //Current Cost
                         cost_neighbor = cost_matrix[neighbor[0]][neighbor[1]].cost;
                         //New Cost by adding the previous value
                         new_cost = cost_first + grid[neighbor[0]][neighbor[1]].weight;
+                        
+                        neighbor_costs.push({"current":first_key, 
+                                              "neighbor": neighbor_key,
+                                              "current_cost": cost_neighbor,
+                                              "new_cost":new_cost});
 
                         //If the new cost is less, then update value
                         if (new_cost < cost_neighbor) {
@@ -490,11 +490,11 @@
                             queue[new_cost].push(neighbor);
                         }
                     }
+                    iterative_costs.push(neighbor_costs);
 
                     //Remove first element
                     ind = queue[cost_first].indexOf(first);
                     queue[cost_first].splice(ind, 1);
-                    //console.log(Object.keys(queue), queue[cost_first][0]);
 
                     if (queue[cost_first].length == 0) {
                         delete queue[cost_first];
@@ -505,12 +505,8 @@
                 return cost_matrix;
             }
 
-
-            //var origin = [0,0]
-            //var destination = [r - 1, c - 1];
-
-
             function pathSvgIndex(col, grid) {
+                //Return SVG index of the path calculated, so show line on grid
                 element = grid[col[0]][col[1]];
                 x = element.x + 20;
                 y = element.y + 20;
@@ -519,11 +515,10 @@
             }
 
             function findCheapestPath(cost_matrix, origin, destination, constructed_grid) {
+                //Find the cheapest path to go from origin to destination
                 var path = []
                 path.unshift(pathSvgIndex(destination, constructed_grid));
-
                 cheapest_path.unshift(destination);
-
                 previous = cost_matrix[destination[0]][destination[1]].previous
 
                 while (previous != origin) {
@@ -535,10 +530,6 @@
                 cheapest_path.unshift(previous);
                 return path;
             }
-
-            //console.log(path)
-            // initial grid
-            //buildGrid(r, c, bw, bh, constructed_grid);
 
             function getAllNeighbors(point, constructed_grid, nodes, links, visited) {
                 //Show neighbors in a graph
@@ -605,7 +596,7 @@
             }
 
             function showGraph(constructed_grid) {
-
+                //Visualize graph
                 if(ngbrs.length == 0){
                     fetchNeighbors(constructed_grid);    
                 }
@@ -679,6 +670,7 @@
             }
 
             function fetchNeighbors(constructed_grid){
+                //Get all neighbors to construct the graph
                 var visited = {};
 
                 for (var i = 0; i < constructed_grid.length; i++) {
@@ -690,8 +682,8 @@
 
             }
 
-            function fillNode(node) {
-
+            function fillNode(node) {   
+                //Fill node with color of origin and destination in the graph
                 o = origin[0] + ',' + origin[1];
                 d = destination[0] + ',' + destination[1];
 
@@ -732,8 +724,6 @@
                 }
                 return "#fff";
             }
-
-
 
             var canvas = document.querySelector("canvas"),
                 context = canvas.getContext("2d"),
