@@ -31,7 +31,7 @@
 
     .box {
         height: 20px;
-        width: 30px;
+        width: 40px;
     }
 
     .controls {
@@ -39,7 +39,7 @@
 
         margin-left: 55px;
         float: left;
-        font-size: 14px;
+        
         font-family: "Tahoma", Geneva, sans-serif;
         color: "Black";
 
@@ -69,9 +69,11 @@
 
         position: absolute;
         left: 0px;
-        width: 50%;
+        width: 100%;
+        height: 100%;
+        margin-left: 300px;
+        font-size: 18px;
 
-        margin-left: 500px
     }
 
     .right-half {
@@ -79,6 +81,7 @@
         position: absolute;
         right: 0px;
         width: 50%;
+        height: 40%;
 
     }
 </style>
@@ -92,39 +95,43 @@
     <h4 class="header"> Understanding Djikstra's Algorithm through Interactive Visualization</h4>
     <!-- div class="left-half"> -->
 
-
+<div class = "left-half">
     <div><b>Step 1:</b> Select number of rows and columns</div><br/>
-    <div>Number of Rows: <input name='rowBox' type="number" min="1" max="10" value="4" id="rowBox" class="box" /> &nbsp Number of Columns: <input name='colBox' type="number" min="1" max="10" value="4" id="colBox" class="box" />&nbsp
-        <button name='buildBox' type="button" maxlength="2" id="buildBox" value='Build Grid' onclick="constructGrid()">Build Grid</button> &nbsp&nbsp
+    <div>Number of Rows: <input name='rowBox' type="number" min="1" max="10" value="10" id="rowBox" class="box" /> &nbsp Number of Columns: <input name='colBox' type="number" min="1" max="10" value="10" id="colBox" class="box" />&nbsp
+        <button name='buildBox' type="button" maxlength="2" id="buildBox" value='Build Grid' onclick="constructGrid()">Build Grid</button> <br/><br/>
+        <div><b>Step 2:</b> Select the start and end point on the Grid</div> <br/>
+        <div id="start" class="text">You start at :</div> <br/>
+        <div id="end" class="text">You end at :</div> <br/>
+
         <button name='recurseBox' type="button" maxlength="2" id="recurseBox" value='Explore All Paths' onclick="recurse()">Explore All Paths</button>
         <br/><br/>
-    </div>
+
 
     <svg id="grid" width="920" height="500"></svg> <br/>
 
-    <br/>
-    <div><b>Step 2:</b> Select the start and end point on the Grid</div> <br/>
-    <div id="start" class="text">You start at :</div> <br/>
-    <div id="end" class="text">You end at :</div> <br/>
+    <br/> </div>
+    <div><b>Let's visualize this as a graph with nodes</div> <br/>
     <button name='buildBox' type="button" maxlength="2" id="buildBox" value='Build Graph' onclick="constructGraph()">Build Graph</button> <br/> <br/>
-    <svg id="leftgrid" width="920" height="900"></svg>
-    <br/><br/>
-    <div><b>Step 3:</b> Hit Explore! &nbsp
-        <input name='exploreBox' type="submit" maxlength="2" id="exploreBox" value="Explore" onclick="exploreGrid()" />
+<svg id="leftgrid" width="920" height="900"></svg>
+
+    <br/><br/> 
+
+    <div><b>Step 3:</b> &nbsp 
+        <input name='exploreBox' type="submit" maxlength="2" id="exploreBox" value="Find Cheapest Path" onclick="exploreGrid()" />
         </h4>
-    </div>
+    </div><br/><br/>
 
     <svg id="explore" width="920" height="500"></svg> <br/>
 
 
     </div>
+</div>
     <!-- <div class = "right-half"> -->
     <!-- <center> -->
-    <svg id="grid" width="920" height="500"></svg> <br/>
-
+    <!-- <svg id="grid" width="920" height="500"></svg> <br/>
     </center>
     </div>
-
+-->
 
     <body bgcolor="#F5F5DC">
 
@@ -642,6 +649,7 @@
                         .attr("cy", function(d) {
                             return d.y;
                         });
+                        console.log("hello")
                 }
             }
 
@@ -760,7 +768,26 @@
                 var paths = [];
 
                 //Given the start point, show random paths generating from the start point
-                
+                if(click == false){
+                    //Using click as false, because that indicates that both start and endpoints are selected
+                    for(var i = 0; i < 5; i++){
+                        path_length = 10;
+                        path = [pathSvgIndex(origin, constructed_grid)]
+                        current = origin[0]+','+origin[1]
+                        var random_visit = {};
+                        var neighbors = [];
+                        for(var j = 0; j < path_length - 1; j++){
+                            random_visit[current] = true;
+                            neighbors = ngbrs[current];
+                            neighbors = neighbors.filter(function(item){ return Object.keys(neighbors).indexOf(item) === -1; });
+                            next = neighbors[Math.floor(Math.random() * neighbors.length)];
+                            next = next.split(',');
+                            path.push(pathSvgIndex(next, constructed_grid));
+                            current = next[0]+','+next[1];
+                        }
+                        paths.push(path);
+                    }
+                }
 
                 return paths;
             }
