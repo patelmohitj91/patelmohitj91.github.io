@@ -115,7 +115,7 @@
 
 <div class = "container">
     <div><b>Step 1:</b> Select number of rows and columns</div><br/>
-    <div>Number of Rows: <input name='rowBox' type="number" min="1" max="10" value="10" id="rowBox" class="box" /> &nbsp Number of Columns: <input name='colBox' type="number" min="1" max="10" value="10" id="colBox" class="box" />&nbsp
+    <div>Number of Rows: <input name='rowBox' type="number" min="1" max="10" value="9" id="rowBox" class="box" /> &nbsp Number of Columns: <input name='colBox' type="number" min="1" max="10" value="9" id="colBox" class="box" />&nbsp
         <button name='buildBox' type="button" maxlength="2" id="buildBox" value='Build Grid' onclick="constructGrid()">Build Grid</button> <br/><br/>
         <div><b>Step 2:</b> Select the start and end point on the Grid</div> <br/>
         <div id="start" class="text">You start at :</div> <br/>
@@ -343,7 +343,9 @@
                     cost = (+d3.selectAll('circle[id="'+node_id+'"]').attr('cost')) + cost;
                 }
                 d3.selectAll("#cost")
-                .text("The Spy made it to his destination with "+cost+" damage!")
+                .transition()
+                .delay(2000)
+                .text("The Spy made it to their destination with "+cost+" damage!")
                 .style("color","red");
             }
 
