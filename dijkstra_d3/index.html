@@ -343,7 +343,8 @@
                     cost = (+d3.selectAll('circle[id="'+node_id+'"]').attr('cost')) + cost;
                 }
                 d3.selectAll("#cost")
-                .text("The Spy made it to his destination with "+cost+" damage!");
+                .text("The Spy made it to his destination with "+cost+" damage!")
+                .style("color","red");
             }
 
             function pathTraversal(paths){
