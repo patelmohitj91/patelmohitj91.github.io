@@ -10,11 +10,11 @@
         fill: none;
         stroke: #000;
         stroke-width: 3px;
-        opacity: 0.2;
+        opacity: 0.5;
     }
 
     circle {
-        fill: steelblue;
+        fill: blue;
         stroke: #fff;
         stroke-width: 3px;
         opacity: 0.5;
@@ -82,8 +82,18 @@
         right: 0px;
         width: 50%;
         height: 40%;
-
     }
+
+    table {
+      margin: 10px;
+      font-size: 24px;
+    }
+
+    td {
+      padding: 5px;
+      border-bottom: 1px solid black;
+    }
+
 </style>
 <section class="container">
     <center>
@@ -111,7 +121,8 @@
     <br/> </div>
     <div><b>Let's visualize this as a graph with nodes</div> <br/>
     <button name='buildBox' type="button" maxlength="2" id="buildBox" value='Build Graph' onclick="constructGraph()">Build Graph</button> <br/> <br/>
-<svg id="leftgrid" width="920" height="900"></svg>
+    <svg id="leftgrid" width="920" height="900"></svg>
+    <svg id="lefttable" width="920" height="900"></svg>
 
     <br/><br/> 
 
@@ -145,6 +156,7 @@
             var link; //d3 element containing all links
             var iterative_costs = []; //Saving all step by step costs
             var svg_path = []; //Shortest svg path since I am calling dijkstra along with graph
+            var cost = 0;
 
             // function to generate random numbers
             function numGenerate(r, c) {
@@ -288,6 +300,7 @@
                 //Calling the cheapest cost function here, because we can save cost steps and use them to explain dijkstra
                 cost_matrix = findMinCost(constructed_grid, origin, destination);
                 svg_path = findCheapestPath(cost_matrix, origin, destination, constructed_grid);
+                var table = tabulate(iterative_costs[0], ['current', 'current_cost', 'neighbor', 'new_cost'])
             }
 
             function exploreGrid() {
@@ -314,6 +327,8 @@
                         .transition()
                         .duration(3000)
                         .style("fill", "blue");
+
+                    cost = (+d3.selectAll('circle[id="'+node_id+'"]').attr('cost')) + cost;
                 }
             }
 
@@ -627,6 +642,7 @@
                         return (d.weight + 1) * 3
                     })
                     .attr("id", function(d){return d.id})
+                    .attr("cost", function(d){return d.weight})
                     .style("fill", function(d) {
                         return fillNode(d);
                     })
@@ -799,6 +815,44 @@
                 }
 
                 return paths;
+            }
+
+            function tabulate(data, columns) {
+
+                var table = d3.select("lefttable").append('table'),
+                    width = +table.attr("width"),
+                    height = +table.attr("height"),
+                
+                thead = table.append("thead"),
+                tbody = table.append("tbody");
+
+                // append the header row
+                thead.append("tr")
+                    .selectAll("th")
+                    .data(columns)
+                    .enter()
+                    .append("th")
+                        .text(function(column) { return column; });
+
+                // create a row for each object in the data
+                var rows = tbody.selectAll("tr")
+                    .data(data)
+                    .enter()
+                    .append("tr");
+
+                // create a cell in each row for each column
+                var cells = rows.selectAll("td")
+                    .data(function(row) {
+                        return columns.map(function(column) {
+                            return {column: column, value: row[column]};
+                        });
+                    })
+                    .enter()
+                    .append("td")
+                    .attr("style", "font-family: Courier")
+                        .html(function(d) { return d.value; });
+                
+                return table;
             }
         </script>
 
