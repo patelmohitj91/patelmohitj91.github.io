@@ -70,7 +70,6 @@
 
         position: absolute;
         width: 50%;
-        
         font-size: 18px;
 
     }
@@ -88,6 +87,12 @@
     {
         height:100px;
     }
+
+    p.ex1 {
+    margin-right: 150px;
+    }
+
+
 
     table {
       margin: 10px;
@@ -109,12 +114,12 @@
         <canvas width="1200" height="200"></canvas>
     </center>
 
-
+<br/>
 
     <h4 class="header">Spy Training Simulation</h4>
 
-<div class = "right-half">
-    <div><b>Step 1:</b> Select number of rows and columns</div><br/>
+<div class = "right-half"> 
+    <br/><br/> <br/><div><b>Step 1:</b> Select number of rows and columns</div><br/>
     <div>Number of Rows: <input name='rowBox' type="number" min="1" max="10" value="9" id="rowBox" class="box" /> &nbsp Number of Columns: <input name='colBox' type="number" min="1" max="10" value="9" id="colBox" class="box" />&nbsp
         <button name='buildBox' type="button" maxlength="2" id="buildBox" value='Build Grid' onclick="constructGrid()">Build Grid</button> <br/><br/>
         <div><b>Step 2:</b> Select the start and end point on the Grid</div> <br/>
@@ -128,7 +133,7 @@
     <svg id="grid" width="920" height="500"></svg> <br/>
      
     <div>
-    <b>Let's visualize this as a graph with nodes</div> <br/>
+    <b>Let's visualize this as a graph with nodes</b></div> <br/>
     <button name='buildBox' type="button" maxlength="2" id="buildBox" value='Build Graph' onclick="constructGraph()">Build Graph</button> <br/> <br/>
     <svg id="leftgrid" width="920" height="900"></svg>
     <div class = "emptyspace"></div>
@@ -145,13 +150,85 @@
     
     <br/><br/>
 
-    <br/> </div> 
+ </div> 
 
 
      
-<div class = "left-half">
-    
- Enter random text here 
+<div class = "left-half"> 
+<p class = "ex1">At the Hustle Spy Organization, our aim is to train our spies
+to be able to navigate through the <b>most cost effective routes</b>
+to go from one point to another. This would help them deliver
+secret packages and save the world.</p>
+
+<p class = "ex1">In the <b>first step</b>, the user would select the difficulty level
+they want to explore i.e - they would select the number of
+rows and columns to form the grid. <u>Clicking the build grid
+button would display the grid created.</u></p>
+
+<p class = "ex1">
+Next, the user would have to select the starting and ending point
+on the grid. The start point is displayed in <font color="green"><b>green</b></font> and the end point
+is displayed in <font color="red"><b>red</b></font>. The spy can go either <b>top, down, left or right</b>
+from the starting point. 
+What should be the most cost-effective path
+the spy would take?
+</p>
+<p class = "ex1"><b>
+What should be the most cost-effective path
+the spy would take?
+</b></p>
+
+<p class = "ex1">
+The answer's quite simple right? You calculate the cost of all paths from origin to destination and then find
+the shortest path.  
+</p>
+<p class = "ex1">
+Let's click "<u>Explore All Paths</u>" and see what happens!
+</p>
+
+
+<p class = "ex1">
+What do we see? The complexity to explore all paths increases with increase in number of rows and columns and 
+the spy is not able to reach its destination in-time to save the world.
+</p>
+
+<p class = "ex1">
+But our spies are very smart. They visualize this weighted grid in form of a graph of <b>nodes</b> and <b>edges</b>.
+The size of each node represents the cost associated to pass through this particular node and the the edges
+show the possible neighbors for every node. So the spy has to traverse through all possible neighbors to reach 
+the destination with minimum cost.
+</p>
+
+<p class = "ex1">
+Our academy has a rockstar instructor called Agent D. He knows an algorithm to calculate the most cost effective
+path with minimum time complexity. This is how the algorithm works:
+</p>
+
+<p class = "ex1">
+1. Mark all nodes unvisited. Create a set of all the unvisited nodes called the unvisited set.<br/><br/>
+2. Assign to every node a tentative distance value: set it to zero for our initial node and to infinity for all other nodes. Set the initial node as current.<br/><br/>
+3. For the current node, consider all of its unvisited neighbors and calculate their tentative distances through the current node. Compare the newly calculated tentative distance to the current assigned value and assign the smaller one<br/><br/>
+4. When we are done considering all of the neighbors of the current node, mark the current node as visited and remove it from the unvisited set. A visited node will never be checked again.<br/><br/>
+5. If the destination node is visited, the algorithm stops
+</p>
+
+<p class = "ex1">
+Click on find cheapest path to see how the most cost effective route that the spy should take to go from origin to
+destination. The <b>black</b> line shows the cheapest path on the grid. We also see the cheapest path <mark>highlighted</mark> on the graph
+above.
+</p>
+
+<p class = "ex1">
+<b>Our spy now has the license to kill!</b>
+</p>
+
+<p class = "ex1">
+ Read more about Djikstra's Algorithm <a href = "https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm">here</a>   
+</p>
+
+<p class = "ex1">
+Access to our paper <a href = "">here</a>
+</p>    
     </div>
 </div>
 </div>
