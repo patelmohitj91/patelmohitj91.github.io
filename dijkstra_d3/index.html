@@ -113,7 +113,7 @@
 
     <h4 class="header">Spy Training Simulation</h4>
 
-<div class = "container">
+<div class = "right-half">
     <div><b>Step 1:</b> Select number of rows and columns</div><br/>
     <div>Number of Rows: <input name='rowBox' type="number" min="1" max="10" value="9" id="rowBox" class="box" /> &nbsp Number of Columns: <input name='colBox' type="number" min="1" max="10" value="9" id="colBox" class="box" />&nbsp
         <button name='buildBox' type="button" maxlength="2" id="buildBox" value='Build Grid' onclick="constructGrid()">Build Grid</button> <br/><br/>
@@ -126,25 +126,32 @@
 </div>
      
     <svg id="grid" width="920" height="500"></svg> <br/>
-      </div> </div>
-    <br/> </div>
-
-<div class = "container">
-<div class = "left-half">
-    <div><b>Let's visualize this as a graph with nodes</div> <br/>
+     
+    <div>
+    <b>Let's visualize this as a graph with nodes</div> <br/>
     <button name='buildBox' type="button" maxlength="2" id="buildBox" value='Build Graph' onclick="constructGraph()">Build Graph</button> <br/> <br/>
     <svg id="leftgrid" width="920" height="900"></svg>
-</div>
-    <br/><br/> 
-<div class = "right-half">
-    <div style="margin-left:45px;"><b>Step 3:</b> &nbsp 
+    <div class = "emptyspace"></div>
+    <div><b>Step 3:</b> &nbsp 
         <input name='exploreBox' type="submit" maxlength="2" id="exploreBox" value="Find Cheapest Path" onclick="exploreGrid()" />
         </h4>
     </div><br/><br/>
-    <div class = "emptyspace"></div>
+
     <svg id="explore" width="920" height="500" transform="translate(50,0)"></svg> <br/>
     <div id="cost" class="text" style="margin-left:45px;"></div> <br/>
+    </div>
 
+    
+    
+    <br/><br/>
+
+    <br/> </div> 
+
+
+     
+<div class = "left-half">
+    
+ Enter random text here 
     </div>
 </div>
 </div>
